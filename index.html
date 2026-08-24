@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Isomorphic | Interactive Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Premium Minimalist Background for Isomorphic website template */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at bottom right, #16365C 0%, #0A2240 60%, #051326 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94A3B8;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Simple geometric accent */
+    .bg-glow {
+      position: absolute;
+      width: 40vw;
+      height: 40vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(197, 160, 89, 0.08) 0%, rgba(10, 34, 64, 0.03) 50%, transparent 100%);
+      bottom: -10vw;
+      right: -10vw;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .container {
+      text-align: center;
+      z-index: 2;
+      animation: fadeIn 1s ease-out;
+    }
+    .logo {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 24px;
+      animation: float 6s ease-in-out infinite;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 500;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 0.95rem;
+      color: #64748B;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+
+  <div class="container">
+    <!-- Isometric Cube SVG Logo for Isomorphic -->
+    <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#mainGrad1)" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-linejoin="round"/>
+      <path d="M2 7V17L12 22V12L2 7Z" fill="url(#mainGrad2)" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-linejoin="round"/>
+      <path d="M12 12V22L22 17V7L12 12Z" fill="url(#mainGrad3)" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-linejoin="round"/>
+      <defs>
+        <linearGradient id="mainGrad1" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#C5A059"/>
+          <stop offset="100%" stop-color="#EFE6D1"/>
+        </linearGradient>
+        <linearGradient id="mainGrad2" x1="2" y1="7" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#0A2240"/>
+          <stop offset="100%" stop-color="#16365C"/>
+        </linearGradient>
+        <linearGradient id="mainGrad3" x1="12" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#C5A059"/>
+          <stop offset="100%" stop-color="#0A2240"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <h1>Isomorphic</h1>
+    <p>Intelligent Digital Architecture</p>
+  </div>
+
+  <!-- Pure JS Chatbot Attachment -->
+  <script src="chatbot.js"></script>
+
+</body>
+</html>
