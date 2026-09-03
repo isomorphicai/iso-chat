@@ -545,7 +545,7 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 8px 26px rgba(0, 0, 0, 0.2);
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+        transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s ease, box-shadow 0.2s ease;
         position: relative;
         overflow: hidden;
         padding: 0;
@@ -558,6 +558,13 @@
 
       .iso-toggle:active {
         transform: scale(0.96);
+      }
+
+      /* Compact launcher button when chat window is active & open */
+      .iso-active .iso-toggle {
+        width: 48px;
+        height: 48px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       }
 
       .iso-start-img {
@@ -579,8 +586,8 @@
 
       .iso-close-icon {
         position: absolute;
-        width: 40%;
-        height: 40%;
+        width: 44%;
+        height: 44%;
         color: var(--iso-launcher-icon-color);
         stroke: var(--iso-launcher-icon-color);
         opacity: 0;
@@ -599,15 +606,15 @@
         transform: rotate(0) scale(1);
       }
 
-      /* Chat Window */
+      /* Chat Window: Expanded height with optimized vertical spacing */
       .iso-window {
-        width: 380px;
-        height: 580px;
-        max-height: calc(100vh - 120px);
+        width: 385px;
+        height: 630px;
+        max-height: calc(100vh - 84px);
         background-color: var(--iso-bg);
         border-radius: 16px;
         box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.05);
-        margin-bottom: 16px;
+        margin-bottom: 10px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -1678,24 +1685,26 @@
     dismissHelpNotification();
     isChatOpen = true;
     isMinimized = false;
-    isSessionEnded = false;
     widgetContainer.classList.add("iso-active");
     chatWindow.setAttribute("aria-hidden", "false");
     resetIdleTimer();
 
-    // Render customizable welcome message from MongoDB config as soon as bot opens
-    if (!chatHistory || chatHistory.length === 0) {
+    // Only render welcome messages if there is no ongoing conversation in DOM or history
+    const hasRenderedMessages = chatBody && chatBody.querySelectorAll(".iso-message").length > 0;
+    if (!hasRenderedMessages && (!chatHistory || chatHistory.length === 0)) {
       renderWelcomeMessages();
     }
 
     setTimeout(scrollToBottom, 80);
-    if (window.innerWidth > 480 && textInput) {
+    if (window.innerWidth > 480 && textInput && !isSessionEnded) {
       textInput.disabled = false;
       textInput.focus();
     }
   }
 
-  function minimizeChat() {
+  function minimizeChat(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
     isChatOpen = false;
     isMinimized = true;
     widgetContainer.classList.remove("iso-active");
