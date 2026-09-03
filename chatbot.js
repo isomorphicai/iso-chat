@@ -12,9 +12,9 @@
   if (window.IsoChatbotInitialized) return;
   window.IsoChatbotInitialized = true;
 
-  // Default API Endpoints
-  const DEFAULT_CONFIG_API_URL = "http://localhost:5001/api/bot-config";
-  const DEFAULT_CHAT_API_URL = "http://localhost:5001/api/chat";
+  // Default API Endpoints (points to iso-middleware on port 5000)
+  const DEFAULT_CONFIG_API_URL = "http://localhost:5000/api/bot-config";
+  const DEFAULT_CHAT_API_URL = "http://localhost:5000/api/chat";
 
   // Isometric SVG Logo
   const ISO_LOGO_SVG = `
@@ -98,15 +98,16 @@
       }
     ],
     botUIConfigs: {
-      botThemeColor: "#00306D",
+      botThemeColor: "#0A2240",
+      botAccentColor: "#C5A059",
       botChatStartImage: "https://bbh-product-bucket.s3.us-east-2.amazonaws.com/a04ac944-0efc-4f92-84cd-9463c94f0505.png",
-      botResponseBackgroundColor: "#EFEFEF",
-      userQueryBackgroundColor: "#EFEFEF",
-      botResponseFontColor: "",
-      userQueryFontColor: "",
-      bgColor: "#ffffff",
+      botResponseBackgroundColor: "#FFFFFF",
+      userQueryBackgroundColor: "#0A2240",
+      botResponseFontColor: "#0F172A",
+      userQueryFontColor: "#FFFFFF",
+      bgColor: "#F8FAFC",
       logoUrl: "https://bbh-product-bucket.s3.us-east-2.amazonaws.com/a04ac944-0efc-4f92-84cd-9463c94f0505.png",
-      botHeaderText: "ISO AI",
+      botHeaderText: "Isomorphic AI",
       DefaultEmptyMessage: "",
       helpNotificationRenderTime: 10000,
       helpNotificationRenderMsg: "Hi! I am CoolBot, an AI chatbot. I can provide answers to your technology questions and resources to resolve some of the most common issues.",
@@ -803,6 +804,103 @@
         max-width: 100%;
       }
 
+      
+      /* Markdown Elements inside Bot Message */
+      .iso-msg-bubble .iso-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #CBD5E1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .iso-msg-bubble .iso-md-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: left;
+        background: #FFFFFF;
+      }
+      .iso-msg-bubble .iso-md-table th {
+        background-color: #0A2240;
+        color: #FFFFFF;
+        font-weight: 600;
+        padding: 8px 11px;
+        border-bottom: 2px solid #C5A059;
+        white-space: nowrap;
+      }
+      .iso-msg-bubble .iso-md-table td {
+        padding: 8px 11px;
+        border-bottom: 1px solid #E2E8F0;
+        color: #1E293B;
+        vertical-align: top;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-table tr:nth-child(even) td {
+        background-color: #F8FAFC;
+      }
+      .iso-msg-bubble .iso-md-table tr:hover td {
+        background-color: #F1F5F9;
+      }
+      .iso-msg-bubble .iso-md-h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0A2240;
+        margin: 12px 0 6px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+      .iso-msg-bubble .iso-md-h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0A2240;
+        margin: 10px 0 4px 0;
+      }
+      .iso-msg-bubble .iso-md-h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin: 8px 0 3px 0;
+      }
+      .iso-msg-bubble .iso-md-ul, .iso-msg-bubble .iso-md-ol {
+        margin: 6px 0 6px 18px;
+        padding-left: 0;
+      }
+      .iso-msg-bubble .iso-md-ul li, .iso-msg-bubble .iso-md-ol li {
+        margin-bottom: 4px;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-hr {
+        border: none;
+        border-top: 1px solid #E2E8F0;
+        margin: 12px 0;
+      }
+      .iso-msg-bubble .iso-md-link {
+        color: #C5A059;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .iso-msg-bubble .iso-md-link:hover {
+        color: #0A2240;
+      }
+      .iso-msg-bubble .iso-md-pre {
+        background: #0F172A;
+        color: #F8FAFC;
+        padding: 9px 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 11.5px;
+        margin: 8px 0;
+      }
+      .iso-msg-bubble .iso-md-inline-code {
+        background: rgba(10, 34, 64, 0.07);
+        color: #0A2240;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
       .iso-msg-bubble {
         padding: 11px 15px;
         border-radius: 14px;
@@ -812,14 +910,208 @@
         word-break: break-word;
       }
 
-      .iso-message-bot .iso-msg-bubble {
+      .iso-message-bot 
+      /* Markdown Elements inside Bot Message */
+      .iso-msg-bubble .iso-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #CBD5E1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .iso-msg-bubble .iso-md-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: left;
+        background: #FFFFFF;
+      }
+      .iso-msg-bubble .iso-md-table th {
+        background-color: #0A2240;
+        color: #FFFFFF;
+        font-weight: 600;
+        padding: 8px 11px;
+        border-bottom: 2px solid #C5A059;
+        white-space: nowrap;
+      }
+      .iso-msg-bubble .iso-md-table td {
+        padding: 8px 11px;
+        border-bottom: 1px solid #E2E8F0;
+        color: #1E293B;
+        vertical-align: top;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-table tr:nth-child(even) td {
+        background-color: #F8FAFC;
+      }
+      .iso-msg-bubble .iso-md-table tr:hover td {
+        background-color: #F1F5F9;
+      }
+      .iso-msg-bubble .iso-md-h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0A2240;
+        margin: 12px 0 6px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+      .iso-msg-bubble .iso-md-h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0A2240;
+        margin: 10px 0 4px 0;
+      }
+      .iso-msg-bubble .iso-md-h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin: 8px 0 3px 0;
+      }
+      .iso-msg-bubble .iso-md-ul, .iso-msg-bubble .iso-md-ol {
+        margin: 6px 0 6px 18px;
+        padding-left: 0;
+      }
+      .iso-msg-bubble .iso-md-ul li, .iso-msg-bubble .iso-md-ol li {
+        margin-bottom: 4px;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-hr {
+        border: none;
+        border-top: 1px solid #E2E8F0;
+        margin: 12px 0;
+      }
+      .iso-msg-bubble .iso-md-link {
+        color: #C5A059;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .iso-msg-bubble .iso-md-link:hover {
+        color: #0A2240;
+      }
+      .iso-msg-bubble .iso-md-pre {
+        background: #0F172A;
+        color: #F8FAFC;
+        padding: 9px 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 11.5px;
+        margin: 8px 0;
+      }
+      .iso-msg-bubble .iso-md-inline-code {
+        background: rgba(10, 34, 64, 0.07);
+        color: #0A2240;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      .iso-msg-bubble {
         background-color: var(--iso-bot-msg-bg);
         color: var(--iso-bot-msg-color);
         border-bottom-left-radius: 3px;
         border: 1px solid rgba(0, 0, 0, 0.04);
       }
 
-      .iso-message-user .iso-msg-bubble {
+      .iso-message-user 
+      /* Markdown Elements inside Bot Message */
+      .iso-msg-bubble .iso-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #CBD5E1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .iso-msg-bubble .iso-md-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: left;
+        background: #FFFFFF;
+      }
+      .iso-msg-bubble .iso-md-table th {
+        background-color: #0A2240;
+        color: #FFFFFF;
+        font-weight: 600;
+        padding: 8px 11px;
+        border-bottom: 2px solid #C5A059;
+        white-space: nowrap;
+      }
+      .iso-msg-bubble .iso-md-table td {
+        padding: 8px 11px;
+        border-bottom: 1px solid #E2E8F0;
+        color: #1E293B;
+        vertical-align: top;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-table tr:nth-child(even) td {
+        background-color: #F8FAFC;
+      }
+      .iso-msg-bubble .iso-md-table tr:hover td {
+        background-color: #F1F5F9;
+      }
+      .iso-msg-bubble .iso-md-h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0A2240;
+        margin: 12px 0 6px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+      .iso-msg-bubble .iso-md-h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0A2240;
+        margin: 10px 0 4px 0;
+      }
+      .iso-msg-bubble .iso-md-h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin: 8px 0 3px 0;
+      }
+      .iso-msg-bubble .iso-md-ul, .iso-msg-bubble .iso-md-ol {
+        margin: 6px 0 6px 18px;
+        padding-left: 0;
+      }
+      .iso-msg-bubble .iso-md-ul li, .iso-msg-bubble .iso-md-ol li {
+        margin-bottom: 4px;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-hr {
+        border: none;
+        border-top: 1px solid #E2E8F0;
+        margin: 12px 0;
+      }
+      .iso-msg-bubble .iso-md-link {
+        color: #C5A059;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .iso-msg-bubble .iso-md-link:hover {
+        color: #0A2240;
+      }
+      .iso-msg-bubble .iso-md-pre {
+        background: #0F172A;
+        color: #F8FAFC;
+        padding: 9px 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 11.5px;
+        margin: 8px 0;
+      }
+      .iso-msg-bubble .iso-md-inline-code {
+        background: rgba(10, 34, 64, 0.07);
+        color: #0A2240;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      .iso-msg-bubble {
         background-color: var(--iso-user-msg-bg);
         color: var(--iso-user-msg-color);
         border-bottom-right-radius: 3px;
@@ -1406,7 +1698,7 @@
     chatToggle.addEventListener("click", handleToggleClick);
 
     widgetContainer.querySelector(".iso-minimize-btn").addEventListener("click", minimizeChat);
-    widgetContainer.querySelector(".iso-close-btn").addEventListener("click", closeChat);
+    widgetContainer.querySelector(".iso-close-btn").addEventListener("click", handleCloseButtonClick);
 
     const calloutCloseBtn = widgetContainer.querySelector(".iso-callout-close");
     if (calloutCloseBtn) {
@@ -1480,7 +1772,55 @@
     chatWindow.setAttribute("aria-hidden", "true");
   }
 
-  function closeChat() {
+
+  // --------------------------------------------------------
+  // END CHAT & SURVEY FLOW
+  // --------------------------------------------------------
+  function handleCloseButtonClick() {
+    if (chatHistory.length > 0 && !isSessionEnded && !chatBody.querySelector(".iso-end-chat-form")) {
+      appendMessage("bot", "Before you leave, please rate your experience with us today:");
+      showEndChatForm("cross_icon");
+    } else {
+      finalizeCloseChat();
+    }
+  }
+
+  function showEndChatForm(reason = "cross_icon") {
+    if (chatBody && chatBody.querySelector(".iso-end-chat-form")) return;
+
+    let surveyForm = (config.customForms || []).find(f => f.name === "survey" || (f.intent || []).includes("end_chat"));
+    if (!surveyForm) {
+      surveyForm = {
+        type: "form",
+        name: "survey",
+        title: "Session Feedback & Rating",
+        showDownloadButton: true,
+        showCancelledButton: true,
+        cancelledButtonTitle: "Skip & Close",
+        payload: {
+          fields: [
+            { title: "Rating", name: "rating", type: "rating", validate: { required: true } },
+            { title: "Comments / Feedback (Optional)", name: "feedback", type: "textarea", validate: { required: false } },
+            { title: "Closed", name: "status", type: "hidden", validate: { required: false } }
+          ],
+          submitButtonTitle: "Submit & End Chat",
+          downloadTranscriptButtonTitle: "Download Transcript"
+        }
+      };
+    }
+
+    if (textInput) {
+      textInput.disabled = true;
+      textInput.placeholder = "Chat session ending...";
+    }
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+
+    renderCustomForm(surveyForm, true);
+  }
+
+  function finalizeCloseChat() {
     isChatOpen = false;
     isMinimized = false;
     isSessionEnded = true;
@@ -1491,6 +1831,7 @@
       localStorage.removeItem(getHistoryKey());
       localStorage.removeItem("iso_history_ISOBot");
       localStorage.removeItem("cbot_history_ISOBot");
+      sessionStorage.removeItem("iso_chat_session_id");
     } catch (e) {
       console.warn("[ISO Chatbot] Error clearing localStorage on close:", e);
     }
@@ -1517,6 +1858,11 @@
     widgetContainer.classList.remove("iso-active");
     chatWindow.setAttribute("aria-hidden", "true");
   }
+
+  function closeChat() {
+    handleCloseButtonClick();
+  }
+
 
   function triggerMessageSend() {
     if (isSessionEnded) return;
@@ -1629,13 +1975,124 @@
   }
 
   function parseMarkdown(text) {
-    let html = String(text);
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    return html;
+    if (!text) return "";
+    let str = String(text);
+
+    // Normalize multi-line cells inside tables (join lines starting with bullet / dash / text)
+    const lines = str.split("\n");
+    const normalizedLines = [];
+    let inTable = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isTableRow = /^\|.*\|$/.test(line.trim());
+      const isTableSeparator = /^\|[\s\-:\|]+\|$/.test(line.trim());
+
+      if (isTableRow || isTableSeparator) {
+        inTable = true;
+        normalizedLines.push(line);
+      } else if (inTable && (line.trim().startsWith("•") || line.trim().startsWith("-") || line.trim().startsWith("*") || (line.trim() && !line.includes("|")))) {
+        if (normalizedLines.length > 0 && normalizedLines[normalizedLines.length - 1].startsWith("|")) {
+          // If previous row had pipes, append inside last cell before closing pipe
+          const lastIdx = normalizedLines.length - 1;
+          const lastLine = normalizedLines[lastIdx];
+          if (lastLine.endsWith("|")) {
+            normalizedLines[lastIdx] = lastLine.slice(0, -1) + "<br/>• " + line.replace(/^[•\-*]\s*/, "").trim() + " |";
+          } else {
+            normalizedLines[lastIdx] += "<br/>" + line.trim();
+          }
+        } else {
+          normalizedLines.push(line);
+          inTable = false;
+        }
+      } else {
+        inTable = false;
+        normalizedLines.push(line);
+      }
+    }
+    str = normalizedLines.join("\n");
+
+    // 1. Code blocks
+    const codeBlocks = [];
+    str = str.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+      const idx = codeBlocks.length;
+      codeBlocks.push(`<pre class="iso-md-pre"><code class="language-${lang}">${escapeHTML(code.trim())}</code></pre>`);
+      return `%%CODEBLOCK_${idx}%%`;
+    });
+
+    // 2. Inline code
+    const inlineCodes = [];
+    str = str.replace(/`([^`]+)`/g, (match, code) => {
+      const idx = inlineCodes.length;
+      inlineCodes.push(`<code class="iso-md-inline-code">${escapeHTML(code)}</code>`);
+      return `%%INLINECODE_${idx}%%`;
+    });
+
+    function parseInline(txt) {
+      let t = txt;
+      t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      t = t.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+      t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      t = t.replace(/_([^_]+)_/g, "<em>$1</em>");
+      t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="iso-md-link">$1</a>');
+      return t;
+    }
+
+    // 3. Markdown Tables
+    str = str.replace(/(?:(?:^|\n)\|[^\n]+\|\r?\n\|[\s\-:\|]+\|\r?\n(?:\|[^\n]+\|\r?\n?)+)/g, (tableBlock) => {
+      const rows = tableBlock.trim().split("\n").map(l => l.trim()).filter(Boolean);
+      if (rows.length < 2) return tableBlock;
+
+      const headerLine = rows[0];
+      const bodyLines = rows.slice(2);
+
+      const parseRow = (line, isHeader = false) => {
+        const cells = line.split("|").map(c => c.trim()).slice(1, -1);
+        const tag = isHeader ? "th" : "td";
+        return "<tr>" + cells.map(c => `<${tag}>${parseInline(c)}</${tag}>`).join("") + "</tr>";
+      };
+
+      const thead = "<thead>" + parseRow(headerLine, true) + "</thead>";
+      const tbody = "<tbody>" + bodyLines.map(l => parseRow(l, false)).join("") + "</tbody>";
+
+      return `\n<div class="iso-table-wrapper"><table class="iso-md-table">${thead}${tbody}</table></div>\n`;
+    });
+
+    // 4. Headings
+    str = str.replace(/^### (.*$)/gim, '<h4 class="iso-md-h4">$1</h4>');
+    str = str.replace(/^## (.*$)/gim, '<h3 class="iso-md-h3">$1</h3>');
+    str = str.replace(/^# (.*$)/gim, '<h2 class="iso-md-h2">$1</h2>');
+
+    // 5. Horizontal rules
+    str = str.replace(/^(?:---|___|\*\*\*)\s*$/gim, '<hr class="iso-md-hr" />');
+
+    // 6. Bullet lists
+    str = str.replace(/(?:^|\n)(?:[*\-•]\s+[^\n]+(?:\n[*\-•]\s+[^\n]+)*)/g, (listBlock) => {
+      const items = listBlock.trim().split("\n").map(l => l.replace(/^[*\-•]\s+/, "").trim());
+      return "\n<ul class=\"iso-md-ul\">" + items.map(it => `<li>${parseInline(it)}</li>`).join("") + "</ul>\n";
+    });
+
+    // 7. Numbered lists
+    str = str.replace(/(?:^|\n)(?:\d+\.\s+[^\n]+(?:\n\d+\.\s+[^\n]+)*)/g, (listBlock) => {
+      const items = listBlock.trim().split("\n").map(l => l.replace(/^\d+\.\s+/, "").trim());
+      return "\n<ol class=\"iso-md-ol\">" + items.map(it => `<li>${parseInline(it)}</li>`).join("") + "</ol>\n";
+    });
+
+    // 8. General inline formatting
+    str = parseInline(str);
+
+    // 9. Convert remaining line breaks into <br/>
+    str = str.replace(/\n\n+/g, "<br/><br/>").replace(/\n/g, "<br/>");
+    str = str.replace(/<br\/><br\/>(<div|<ul|<ol|<h2|<h3|<h4|<hr)/gi, "$1");
+    str = str.replace(/(<\/div>|<\/ul>|<\/ol>|<\/h2>|<\/h3>|<\/h4>|<hr \/>)<br\/><br\/>/gi, "$1");
+    str = str.replace(/<br\/>(<div|<ul|<ol|<h2|<h3|<h4|<hr)/gi, "$1");
+    str = str.replace(/(<\/div>|<\/ul>|<\/ol>|<\/h2>|<\/h3>|<\/h4>|<hr \/>)<br\/>/gi, "$1");
+
+    // 10. Restore code blocks & inline codes
+    str = str.replace(/%%CODEBLOCK_(\d+)%%/g, (m, idx) => codeBlocks[parseInt(idx)] || "");
+    str = str.replace(/%%INLINECODE_(\d+)%%/g, (m, idx) => inlineCodes[parseInt(idx)] || "");
+
+    return str.trim();
   }
 
   function renderMessage(sender, text, isHtml = false, timestampStr = null, id = null) {
@@ -1714,6 +2171,40 @@
     return messageEl;
   }
 
+    // Session Management Helper
+  function getOrCreateSessionId() {
+    let sId = sessionStorage.getItem("iso_chat_session_id");
+    if (!sId) {
+      sId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+      sessionStorage.setItem("iso_chat_session_id", sId);
+    }
+    return sId;
+  }
+
+  function endChatSession(feedbackData = {}) {
+    const activeSessionId = sessionStorage.getItem("iso_chat_session_id");
+    if (activeSessionId) {
+      const endpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
+      const endEndpoint = endpoint.replace(/\/chat$/, "/chat/session-end");
+      const tenantIdValue = config.tenantId || config.teanantId || "onestop";
+      try {
+        fetch(endEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: activeSessionId,
+            tenantId: tenantIdValue,
+            botId: config.botId,
+            rating: feedbackData.rating || null,
+            feedback: feedbackData.feedback || ""
+          }),
+          keepalive: true
+        }).catch(() => {});
+      } catch (e) {}
+      sessionStorage.removeItem("iso_chat_session_id");
+    }
+  }
+
   function appendMessage(sender, text, isHtml = false) {
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
@@ -1762,12 +2253,12 @@
   // --------------------------------------------------------
   // 11. CUSTOM FORMS (transferCall & survey)
   // --------------------------------------------------------
-  function renderCustomForm(formConfig) {
+  function renderCustomForm(formConfig, isEndChatForm = false) {
     if (!formConfig || !formConfig.payload) return;
     const payload = formConfig.payload;
 
     const formWrapper = document.createElement("div");
-    formWrapper.className = "iso-form-container";
+    formWrapper.className = "iso-form-container" + (isEndChatForm || formConfig.name === "survey" ? " iso-end-chat-form" : "");
 
     let fieldsHtml = "";
     (payload.fields || []).forEach(f => {
@@ -1811,8 +2302,9 @@
       </button>
     ` : "";
 
-    const cancelBtn = formConfig.showCancelledButton ? `
-      <button type="button" class="iso-form-cancel">Cancel</button>
+    const cancelTitle = formConfig.cancelledButtonTitle || (isEndChatForm ? "Skip & Close" : "Cancel");
+    const cancelBtn = (formConfig.showCancelledButton || isEndChatForm) ? `
+      <button type="button" class="iso-form-cancel">${cancelTitle}</button>
     ` : "";
 
     formWrapper.innerHTML = `
@@ -1864,11 +2356,23 @@
       const formData = new FormData(formEl);
       const data = Object.fromEntries(formData.entries());
 
-      formWrapper.innerHTML = `
-        <div style="font-size: 13px; color: #10B981; font-weight: 500; text-align: center; padding: 8px 0;">
-          ✓ Information successfully submitted. Thank you!
-        </div>
-      `;
+      if (isEndChatForm || formConfig.name === "survey") {
+        formWrapper.innerHTML = `
+          <div style="font-size: 13px; color: #10B981; font-weight: 600; text-align: center; padding: 12px 0;">
+            ✓ Thank you for your feedback! Ending chat session...
+          </div>
+        `;
+        endChatSession(data);
+        setTimeout(() => {
+          finalizeCloseChat();
+        }, 1500);
+      } else {
+        formWrapper.innerHTML = `
+          <div style="font-size: 13px; color: #10B981; font-weight: 500; text-align: center; padding: 8px 0;">
+            ✓ Information successfully submitted. Thank you!
+          </div>
+        `;
+      }
 
       if (payload.postbackUrl) {
         try {
@@ -1882,6 +2386,25 @@
         }
       }
     });
+
+    if (isEndChatForm || formConfig.name === "survey") {
+      const cancelAction = formWrapper.querySelector(".iso-form-cancel");
+      if (cancelAction) {
+        cancelAction.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          formWrapper.innerHTML = `
+            <div style="font-size: 12px; color: #64748B; text-align: center; padding: 10px 0;">
+              Ending chat session...
+            </div>
+          `;
+          endChatSession({});
+          setTimeout(() => {
+            finalizeCloseChat();
+          }, 1000);
+        };
+      }
+    }
 
     chatBody.appendChild(formWrapper);
     scrollToBottom();
@@ -1935,6 +2458,7 @@
       botId: config.botId,
       tenantId: tenantIdValue,
       teanantId: tenantIdValue,
+      sessionId: getOrCreateSessionId(),
       history: chatHistory.slice(-10)
     };
 
@@ -1971,10 +2495,10 @@
         appendMessage("bot", "Thank you for chatting with us! Have a wonderful day. Goodbye! 👋");
       }
 
-      // Automatically end session and close the chat after a brief delay
+      // Show the End Chat Survey Form right after the goodbye message
       setTimeout(() => {
-        closeChat();
-      }, 1500);
+        showEndChatForm("bye_message");
+      }, 600);
       return;
     }
 
