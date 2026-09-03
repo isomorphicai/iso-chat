@@ -406,6 +406,7 @@
     const iconWidth = normalizeUnit(ui.chatIconWidth, "90px");
     const iconHeight = normalizeUnit(ui.chatIconHeight, "90px");
     const mobileIconWidth = normalizeUnit(ui.chatMobileIconWidth, "70px");
+    const mobileIconHeight = normalizeUnit(ui.chatMobileIconHeight, "70px");
     const headerTextColor = ui.botHeaderTextColor || ui.headerTextColor || ui.headerFontColor || "#FFFFFF";
     const headerIconColor = ui.botHeaderIconColor || ui.headerIconColor || "#FFFFFF";
     const headerStatusColor = ui.botHeaderStatusColor || ui.headerStatusColor || "rgba(255, 255, 255, 0.75)";
