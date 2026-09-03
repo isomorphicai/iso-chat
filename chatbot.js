@@ -94,6 +94,7 @@
       bgColor: "#F8FAFC",
       logoUrl: "https://bbh-product-bucket.s3.us-east-2.amazonaws.com/a04ac944-0efc-4f92-84cd-9463c94f0505.png",
       botHeaderText: "Isomorphic AI",
+      botStatusText: "Online",
       DefaultEmptyMessage: "",
       helpNotificationRenderTime: 10000,
       helpNotificationRenderMsg: "Hi! I am CoolBot, an AI chatbot. I can provide answers to your technology questions and resources to resolve some of the most common issues.",
@@ -1555,7 +1556,7 @@
             </div>
             <div class="iso-header-text">
               <span class="iso-bot-name">${headerTitle}</span>
-              <span class="iso-bot-status">${config.botActive !== false ? "Online" : "Offline"}</span>
+              <span class="iso-bot-status">${ui.botStatusText || (config.botActive !== false ? "Online" : "Offline")}</span>
             </div>
           </div>
           <div class="iso-header-actions">
@@ -2743,10 +2744,14 @@
     // 0. Update CSS custom properties
     injectStyles();
 
-    // 1. Header title
+    // 1. Header title & status text
     const nameEl = widgetContainer.querySelector(".iso-bot-name");
     if (nameEl && (ui.botHeaderText || config.botName)) {
       nameEl.textContent = ui.botHeaderText || config.botName;
+    }
+    const statusEl = widgetContainer.querySelector(".iso-bot-status");
+    if (statusEl) {
+      statusEl.textContent = ui.botStatusText || (config.botActive !== false ? "Online" : "Offline");
     }
 
     // 2. Header logo
