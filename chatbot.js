@@ -608,7 +608,7 @@
 
       /* Chat Window: Expanded height with optimized vertical spacing */
       .iso-window {
-        width: 385px;
+        width: 420px;
         height: 630px;
         max-height: calc(100vh - 84px);
         background-color: var(--iso-bg);
@@ -1058,31 +1058,47 @@
         padding-right: 2px;
       }
 
-      /* Thumbs Feedback */
+      /* In-Message Actions & Feedback Row */
       .iso-feedback-row {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-top: 5px;
+        gap: 4px;
+        margin-top: 6px;
         padding-left: 2px;
       }
 
       .iso-feedback-btn {
         background: transparent;
         border: 1px solid transparent;
+        color: #64748B;
         cursor: pointer;
-        padding: 3px 6px;
-        border-radius: 6px;
-        display: flex;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border-radius: 4px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
-        opacity: 0.65;
+        transition: all 0.15s ease;
+        opacity: 0.7;
       }
 
       .iso-feedback-btn:hover:not(:disabled) {
         opacity: 1;
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #0F172A;
+      }
+
+      .iso-feedback-btn svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 1.8;
+      }
+
+      .iso-feedback-icon {
+        width: 14px;
+        height: 14px;
+        object-fit: contain;
       }
 
       .iso-feedback-btn.iso-voted-like {
@@ -1101,12 +1117,6 @@
 
       .iso-feedback-btn:disabled {
         cursor: default;
-      }
-
-      .iso-feedback-icon {
-        width: 16px;
-        height: 16px;
-        object-fit: contain;
       }
 
       .iso-feedback-note {
@@ -1470,18 +1480,15 @@
   }
 
   function renderFeedbackIcon(iconUrl, type) {
-    if (iconUrl && typeof iconUrl === "string" && iconUrl.trim() !== "") {
-      return `<img src="${iconUrl}" class="iso-feedback-icon" alt="${type}" />`;
-    }
     if (type === "like") {
       return `
-        <svg class="iso-feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="iso-feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
         </svg>
       `;
     }
     return `
-      <svg class="iso-feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="iso-feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
       </svg>
     `;
@@ -1591,6 +1598,14 @@
         <div class="iso-input-area">
           <div class="iso-input-wrapper">
             <input type="text" placeholder="${inputPlaceholder}" aria-label="Type your message" ${config.botActive === false ? "disabled" : ""}>
+            <button type="button" class="iso-mic-btn" title="Voice input" aria-label="Voice input" style="background:transparent;border:none;color:#94A3B8;cursor:pointer;display:flex;align-items:center;padding:4px;margin-right:2px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
           </div>
           <button class="iso-send-btn" disabled aria-label="Send message">
             ${sendIcon}
@@ -1631,8 +1646,74 @@
   // --------------------------------------------------------
   // 7. EVENT HANDLERS & BINDING
   // --------------------------------------------------------
+  let isRecordingVoice = false;
+  let recognitionInstance = null;
+  let currentSpeakingUtterance = null;
+
+  function readAloudText(text, btnEl) {
+    if (!("speechSynthesis" in window)) return;
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (btnEl) btnEl.style.color = "";
+      return;
+    }
+    const clean = text.replace(/<[^>]*>?/gm, "").replace(/[`*#_~]/g, "");
+    currentSpeakingUtterance = new SpeechSynthesisUtterance(clean);
+    currentSpeakingUtterance.rate = 1.0;
+    if (btnEl) btnEl.style.color = "#10B981";
+    currentSpeakingUtterance.onend = () => { if (btnEl) btnEl.style.color = ""; };
+    currentSpeakingUtterance.onerror = () => { if (btnEl) btnEl.style.color = ""; };
+    window.speechSynthesis.speak(currentSpeakingUtterance);
+  }
+
   function setupEventListeners() {
     chatToggle.addEventListener("click", handleToggleClick);
+
+    const micBtn = widgetContainer.querySelector(".iso-mic-btn");
+    if (micBtn) {
+      micBtn.addEventListener("click", () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert("Speech recognition is not supported in this browser.");
+          return;
+        }
+        if (isRecordingVoice) {
+          if (recognitionInstance) recognitionInstance.stop();
+          isRecordingVoice = false;
+          micBtn.style.color = "#94A3B8";
+          return;
+        }
+        try {
+          recognitionInstance = new SpeechRecognition();
+          recognitionInstance.lang = "en-US";
+          recognitionInstance.continuous = false;
+          recognitionInstance.interimResults = true;
+          recognitionInstance.onstart = () => {
+            isRecordingVoice = true;
+            micBtn.style.color = "#EF4444";
+          };
+          recognitionInstance.onresult = (e) => {
+            const tr = Array.from(e.results).map(r => r[0].transcript).join("");
+            if (textInput) {
+              textInput.value = tr;
+              handleInputChange();
+            }
+          };
+          recognitionInstance.onend = () => {
+            isRecordingVoice = false;
+            micBtn.style.color = "#94A3B8";
+          };
+          recognitionInstance.onerror = () => {
+            isRecordingVoice = false;
+            micBtn.style.color = "#94A3B8";
+          };
+          recognitionInstance.start();
+        } catch (e) {
+          isRecordingVoice = false;
+          micBtn.style.color = "#94A3B8";
+        }
+      });
+    }
 
     widgetContainer.querySelector(".iso-minimize-btn").addEventListener("click", minimizeChat);
     widgetContainer.querySelector(".iso-close-btn").addEventListener("click", handleCloseButtonClick);
@@ -1980,11 +2061,19 @@
     }
     str = normalizedLines.join("\n");
 
-    // 1. Code blocks
+    // 1. Code blocks with copy button
     const codeBlocks = [];
     str = str.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
       const idx = codeBlocks.length;
-      codeBlocks.push(`<pre class="iso-md-pre"><code class="language-${lang}">${escapeHTML(code.trim())}</code></pre>`);
+      codeBlocks.push(`
+        <div class="iso-code-block" style="position:relative;margin:8px 0;background:#0F172A;border-radius:8px;overflow:hidden;border:1px solid #334155;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:#1E293B;color:#94A3B8;font-size:11px;font-family:monospace;border-bottom:1px solid #334155;">
+            <span>${lang || 'code'}</span>
+            <button type="button" class="iso-copy-code-btn" onclick="IsoChat.copyCode(this)" style="background:transparent;border:none;color:#94A3B8;cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;">Copy</button>
+          </div>
+          <pre class="iso-md-pre" style="margin:0;padding:10px 12px;overflow-x:auto;color:#F8FAFC;font-size:12px;line-height:1.4;"><code class="language-${lang}">${escapeHTML(code.trim())}</code></pre>
+        </div>
+      `);
       return `%%CODEBLOCK_${idx}%%`;
     });
 
@@ -2094,17 +2183,33 @@
       processedText = isHtml ? text : parseMarkdown(text);
     }
 
-    // Feedback Thumbs Up / Down row
+    // Feedback Thumbs Up / Down + Copy + TTS row
     let feedbackHtml = "";
-    if (sender === "bot" && ui.showThumbUpDownFeedbackform !== false) {
+    if (sender === "bot") {
+      const thumbsHtml = ui.showThumbUpDownFeedbackform !== false ? `
+        <button class="iso-feedback-btn iso-like-btn" title="Helpful" aria-label="Like response">
+          ${renderFeedbackIcon(ui.likeIcon, "like")}
+        </button>
+        <button class="iso-feedback-btn iso-dislike-btn" title="Not helpful" aria-label="Dislike response">
+          ${renderFeedbackIcon(ui.dislikeIcon, "dislike")}
+        </button>
+      ` : "";
+
       feedbackHtml = `
         <div class="iso-feedback-row">
-          <button class="iso-feedback-btn iso-like-btn" title="Helpful" aria-label="Like response">
-            ${renderFeedbackIcon(ui.likeIcon, "like")}
+          <button type="button" class="iso-feedback-btn iso-copy-btn" title="Copy response" aria-label="Copy response">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
           </button>
-          <button class="iso-feedback-btn iso-dislike-btn" title="Not helpful" aria-label="Dislike response">
-            ${renderFeedbackIcon(ui.dislikeIcon, "dislike")}
+          <button type="button" class="iso-feedback-btn iso-tts-btn" title="Read aloud" aria-label="Read aloud">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
           </button>
+          ${thumbsHtml}
           <span class="iso-feedback-note"></span>
         </div>
       `;
@@ -2121,11 +2226,30 @@
       </div>
     `;
 
-    // Bind feedback button events
-    if (sender === "bot" && ui.showThumbUpDownFeedbackform !== false) {
+    // Bind feedback button & tools events
+    if (sender === "bot") {
       const likeBtn = messageEl.querySelector(".iso-like-btn");
       const dislikeBtn = messageEl.querySelector(".iso-dislike-btn");
+      const copyBtn = messageEl.querySelector(".iso-copy-btn");
+      const ttsBtn = messageEl.querySelector(".iso-tts-btn");
       const note = messageEl.querySelector(".iso-feedback-note");
+
+      if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+          navigator.clipboard.writeText(text).then(() => {
+            if (note) {
+              note.textContent = "Copied to clipboard! 📋";
+              setTimeout(() => { if (note.textContent.includes("Copied")) note.textContent = ""; }, 2000);
+            }
+          });
+        });
+      }
+
+      if (ttsBtn) {
+        ttsBtn.addEventListener("click", () => {
+          readAloudText(text, ttsBtn);
+        });
+      }
 
       const submitFeedbackPayload = (type) => {
         const currentSessionId = sessionStorage.getItem("iso_chat_session_id") || getOrCreateSessionId();
@@ -2303,6 +2427,28 @@
       }
     });
 
+    const isEndChat = isEndChatForm || formConfig.name === "survey" || formConfig.name === "end_chat";
+    const ui = config.botUIConfigs || {};
+
+    const submitBtnTitle = payload.submitButtonTitle || 
+                           formConfig.submitButtonTitle || 
+                           formConfig.submitText ||
+                           (isEndChat ? (ui.surveySubmitButtonText || ui.endChatSubmitButtonText || ui.sessionEndSubmitButtonTitle) : null) || 
+                           ui.formSubmitButtonTitle || 
+                           "Submit";
+
+    const submitBtnBg = payload.submitButtonColor || 
+                        formConfig.submitButtonColor || 
+                        (isEndChat ? (ui.surveySubmitButtonColor || ui.endChatSubmitButtonColor || ui.sessionEndSubmitButtonColor) : null) || 
+                        ui.formSubmitButtonColor || 
+                        "var(--iso-primary)";
+
+    const submitBtnTextColor = payload.submitButtonTextColor || 
+                               formConfig.submitButtonTextColor || 
+                               (isEndChat ? (ui.surveySubmitButtonTextColor || ui.endChatSubmitButtonTextColor || ui.sessionEndSubmitButtonTextColor) : null) || 
+                               ui.formSubmitButtonTextColor || 
+                               "#ffffff";
+
     const downloadTranscriptBtn = formConfig.showDownloadButton ? `
       <button type="button" class="iso-form-download">
         <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -2310,8 +2456,8 @@
       </button>
     ` : "";
 
-    const cancelTitle = formConfig.cancelledButtonTitle || (isEndChatForm ? "Skip & Close" : "Cancel");
-    const cancelBtn = (formConfig.showCancelledButton || isEndChatForm) ? `
+    const cancelTitle = formConfig.cancelledButtonTitle || (isEndChat ? "Skip & Close" : "Cancel");
+    const cancelBtn = (formConfig.showCancelledButton || isEndChat) ? `
       <button type="button" class="iso-form-cancel">${cancelTitle}</button>
     ` : "";
 
@@ -2320,7 +2466,7 @@
       <form class="iso-dynamic-form">
         ${fieldsHtml}
         <div class="iso-form-actions">
-          <button type="submit" class="iso-form-submit">${payload.submitButtonTitle || "Submit"}</button>
+          <button type="submit" class="iso-form-submit" style="background-color: ${submitBtnBg}; color: ${submitBtnTextColor}; border: none;">${submitBtnTitle}</button>
           ${downloadTranscriptBtn}
           ${cancelBtn}
         </div>
@@ -2621,15 +2767,36 @@
     showQuickReplies(config.quickReplies);
   }
 
+  function getQuickReplies() {
+    const ui = config.botUIConfigs || {};
+    if (Array.isArray(config.quickReplies) && config.quickReplies.length > 0) {
+      return config.quickReplies;
+    }
+    if (Array.isArray(ui.quickReplies) && ui.quickReplies.length > 0) {
+      return ui.quickReplies;
+    }
+    if (Array.isArray(ui.starterQuestions) && ui.starterQuestions.length > 0) {
+      return ui.starterQuestions;
+    }
+    return [
+      "Academic Assistance",
+      "Technology Support",
+      "Tuition & Financial Aid",
+      "Advising Services"
+    ];
+  }
+
   function showQuickReplies(replies) {
     const container = widgetContainer.querySelector(".iso-quick-replies");
-    if (!replies || replies.length === 0) {
+    if (!container) return;
+    const list = (replies && replies.length > 0) ? replies : getQuickReplies();
+    if (!list || list.length === 0) {
       container.style.display = "none";
       return;
     }
 
     container.innerHTML = "";
-    replies.forEach(replyText => {
+    list.forEach(replyText => {
       const btn = document.createElement("button");
       btn.className = "iso-quick-reply-btn";
       btn.textContent = replyText;
@@ -2832,6 +2999,18 @@
       if (form) renderCustomForm(form);
     },
     downloadTranscript: () => downloadTranscript(),
+    copyCode: (btn) => {
+      const pre = btn.closest(".iso-code-block");
+      const code = pre ? pre.querySelector("code").innerText : "";
+      if (code) {
+        navigator.clipboard.writeText(code).then(() => {
+          const original = btn.innerText;
+          btn.innerText = "Copied!";
+          setTimeout(() => { btn.innerText = original; }, 1500);
+        });
+      }
+    },
+    readAloud: (text) => readAloudText(text),
     loadFromApi: async (apiUrl) => {
       if (!apiUrl) return;
       try {
