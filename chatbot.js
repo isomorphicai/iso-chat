@@ -1807,7 +1807,7 @@
     }
 
     // Always show the end chat survey form inside the widget
-    appendMessage("bot", "Before you leave, please rate your experience with us today:");
+    appendMessage("bot", "Before you leave, please rate your experience with us today:", false, { isSystem: true, showFeedback: false });
     showEndChatForm("cross_icon");
   }
 
@@ -1947,7 +1947,7 @@
         for (let i = idleMessagesSentCount; i < idleConfigs.length; i++) {
           const threshold = parseMongoNumber(idleConfigs[i].time, 0);
           if (threshold > 0 && idleSeconds >= threshold) {
-            appendMessage("bot", idleConfigs[i].message);
+            appendMessage("bot", idleConfigs[i].message, false, { isTimeout: true, isIdle: true, showFeedback: false });
             idleMessagesSentCount = i + 1;
 
             // Check if this was the last configured idle message (the concluding message)
@@ -2209,7 +2209,40 @@
     return str.trim();
   }
 
-  function renderMessage(sender, text, isHtml = false, timestampStr = null, id = null) {
+  function isWelcomeOrTimeoutMessage(text, options = {}) {
+    if (options && (options.isWelcome || options.isTimeout || options.isIdle || options.isSystem || options.showFeedback === false || options.showThumbs === false)) {
+      return true;
+    }
+    if (typeof text !== "string") return false;
+    const cleanText = text.trim();
+
+    // Check against welcome messages
+    const welcomeMsgs = getWelcomeMessages();
+    if (welcomeMsgs.some(w => typeof w === "string" && w.trim() === cleanText)) {
+      return true;
+    }
+
+    // Check against configured idle / timeout messages
+    const idleConfigs = (config.botUIConfigs && config.botUIConfigs.idleStatMessages) || [];
+    if (idleConfigs.some(idle => idle && idle.message && idle.message.trim() === cleanText)) {
+      return true;
+    }
+
+    // Check common timeout / system / goodbye substrings
+    const lower = cleanText.toLowerCase();
+    if (lower.includes("ending this chat session") ||
+        lower.includes("ended due to inactivity") ||
+        lower.includes("are you still there") ||
+        lower.includes("rate your experience with us today") ||
+        lower.includes("thank you for chatting with us! have a wonderful day") ||
+        lower.includes("thank you for chatting with us. we value your feedback")) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function renderMessage(sender, text, isHtml = false, timestampStr = null, id = null, options = {}) {
     const messageEl = document.createElement("div");
     messageEl.className = `iso-message iso-message-${sender}`;
     const msgId = id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
@@ -2240,10 +2273,14 @@
       processedText = isHtml ? text : parseMarkdown(text);
     }
 
+    // Determine whether to show like / dislike thumbs
+    const isExempt = isWelcomeOrTimeoutMessage(text, options);
+    const allowThumbs = (ui.showThumbUpDownFeedbackform !== false) && !isExempt;
+
     // Feedback Thumbs Up / Down + Copy + TTS row
     let feedbackHtml = "";
     if (sender === "bot") {
-      const thumbsHtml = ui.showThumbUpDownFeedbackform !== false ? `
+      const thumbsHtml = allowThumbs ? `
         <button class="iso-feedback-btn iso-like-btn" title="Helpful" aria-label="Like response">
           ${renderFeedbackIcon(ui.likeIcon, "like")}
         </button>
@@ -2393,13 +2430,13 @@
     }
   }
 
-  function appendMessage(sender, text, isHtml = false) {
+  function appendMessage(sender, text, isHtml = false, options = {}) {
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    renderMessage(sender, text, isHtml, timestamp, msgId);
+    renderMessage(sender, text, isHtml, timestamp, msgId, options);
 
     // Always maintain in-memory chatHistory for the current session
-    chatHistory.push({ sender, text, timestamp, isHtml, id: msgId });
+    chatHistory.push({ sender, text, timestamp, isHtml, id: msgId, options });
 
     if (config.persistHistory) {
       saveChatHistory();
@@ -2934,7 +2971,7 @@
           if (Array.isArray(parsed) && parsed.some(m => m.sender === "user")) {
             chatHistory = parsed;
             chatHistory.forEach(msg => {
-              renderMessage(msg.sender, msg.text, msg.isHtml, msg.timestamp, msg.id);
+              renderMessage(msg.sender, msg.text, msg.isHtml, msg.timestamp, msg.id, msg.options || {});
             });
             showQuickReplies(config.quickReplies);
             return;
@@ -2986,7 +3023,7 @@
 
     const messages = getWelcomeMessages();
     messages.forEach(msg => {
-      appendMessage("bot", msg);
+      appendMessage("bot", msg, false, { isWelcome: true, showFeedback: false });
     });
 
     showQuickReplies(config.quickReplies);
