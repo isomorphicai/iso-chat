@@ -104,7 +104,7 @@
           time: 180
         },
         {
-          message: "Since there was no response from your end, hence we are ending the chat session. Please re initiate the chat for further support.",
+          message: "Since there was no response, we are ending this chat session. Please re-initiate anytime.",
           time: 240
         }
       ],
@@ -1949,18 +1949,65 @@
           if (threshold > 0 && idleSeconds >= threshold) {
             appendMessage("bot", idleConfigs[i].message);
             idleMessagesSentCount = i + 1;
+
+            // Check if this was the last configured idle message (the concluding message)
+            if (idleMessagesSentCount >= idleConfigs.length) {
+              handleLastIdleMessageAutoClose();
+            }
             break;
           }
         }
       }
 
-      // 20-minute inactivity limit: automatically end the chat session
+      // 20-minute fallback inactivity limit
       if (idleSeconds >= MAX_INACTIVITY_TIMEOUT_SECONDS) {
-        appendMessage("bot", "This chat session has automatically ended after 20 minutes of inactivity.");
-        showEndChatForm("inactivity_timeout");
-        endChatSession("inactivity_20m");
+        handleLastIdleMessageAutoClose();
       }
     }, 1000);
+  }
+
+  function handleLastIdleMessageAutoClose() {
+    if (isSessionEnded) return;
+
+    if (textInput) {
+      textInput.disabled = true;
+      textInput.placeholder = "Chat session ended due to inactivity.";
+    }
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+
+    const currentSessionId = sessionStorage.getItem("iso_chat_session_id") || getOrCreateSessionId();
+    const tenantIdValue = config.tenantId || (config.botUIConfigs && config.botUIConfigs.tenantId) || "onestop";
+    const botIdValue = config.botId || "isobot";
+    const baseEndpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
+
+    // 1. Trigger end_chat session-end on the backend
+    try {
+      const endSessionEndpoint = baseEndpoint.replace(/\/chat\/?$/, "/chat/session-end");
+      fetch(endSessionEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: currentSessionId,
+          tenantId: tenantIdValue,
+          botId: botIdValue,
+          rating: null,
+          feedback: "Ended automatically after last idle message without form",
+          formData: {
+            status: "Ended_Auto_Idle_Last_Message",
+            intent: "end_chat",
+            reason: "no_response_timeout"
+          }
+        }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) {}
+
+    // 2. Wait 3 seconds so the user can read the concluding message, then close the chat window cleanly without showing the form
+    setTimeout(() => {
+      finalizeCloseChat();
+    }, 3000);
   }
 
   function resetIdleTimer() {
@@ -2027,6 +2074,13 @@
     if (!text) return "";
     let str = String(text);
 
+    // Sanitize any raw LLM document citations like 【Document 1】, [Document 1], 【source】
+    str = str.replace(/【(?:Document|Source|Doc)?\s*\d+[^】]*】/gi, "");
+    str = str.replace(/【[^】]+】/g, "");
+    str = str.replace(/\s*\[(?:Document|Doc)\s*\d+[^\]]*\]/gi, "");
+    str = str.replace(/\s*\[\d+†source\]/gi, "");
+    str = str.replace(/\s*\[\d+:\d+†source\]/gi, "");
+
     // Normalize multi-line cells inside tables (join lines starting with bullet / dash / text)
     const lines = str.split("\n");
     const normalizedLines = [];
@@ -2091,7 +2145,10 @@
       t = t.replace(/__([^_]+)__/g, "<strong>$1</strong>");
       t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
       t = t.replace(/_([^_]+)_/g, "<em>$1</em>");
-      t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="iso-md-link">$1</a>');
+      // Markdown links: [Title](url)
+      t = t.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="iso-md-link">$1</a>');
+      // Auto-links: <https://example.com>
+      t = t.replace(/<((?:https?:\/\/)[^>]+)>/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="iso-md-link">$1</a>');
       return t;
     }
 
@@ -2341,8 +2398,10 @@
     const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     renderMessage(sender, text, isHtml, timestamp, msgId);
 
+    // Always maintain in-memory chatHistory for the current session
+    chatHistory.push({ sender, text, timestamp, isHtml, id: msgId });
+
     if (config.persistHistory) {
-      chatHistory.push({ sender, text, timestamp, isHtml, id: msgId });
       saveChatHistory();
     }
   }
@@ -2566,14 +2625,33 @@
 
   function downloadTranscript() {
     let transcriptText = `==============================================\n`;
-    transcriptText += `CHAT TRANSCRIPT: ${config.botUIConfigs.botHeaderText || config.botName}\n`;
+    transcriptText += `CHAT TRANSCRIPT: ${(config.botUIConfigs && config.botUIConfigs.botHeaderText) || config.botName || 'Isomorphic AI'}\n`;
     transcriptText += `Date: ${new Date().toLocaleString()}\n`;
     transcriptText += `==============================================\n\n`;
 
-    chatHistory.forEach(item => {
-      const senderName = item.sender === "bot" ? (config.botUIConfigs.botHeaderText || config.botName) : "You";
-      transcriptText += `[${item.timestamp}] ${senderName}:\n${item.text}\n\n`;
-    });
+    if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+      chatHistory.forEach(item => {
+        const senderName = item.sender === "bot" ? ((config.botUIConfigs && config.botUIConfigs.botHeaderText) || config.botName || 'AI Assistant') : "You";
+        const cleanText = String(item.text || '').replace(/<[^>]*>?/gm, '').trim();
+        if (cleanText) {
+          transcriptText += `[${item.timestamp || ''}] ${senderName}:\n${cleanText}\n\n`;
+        }
+      });
+    } else if (chatBody) {
+      // Fallback: extract messages from DOM if in-memory history was cleared
+      const msgNodes = chatBody.querySelectorAll('.iso-message:not(.iso-typing-container)');
+      msgNodes.forEach(node => {
+        const isBot = node.classList.contains('iso-message-bot');
+        const senderName = isBot ? ((config.botUIConfigs && config.botUIConfigs.botHeaderText) || config.botName || 'AI Assistant') : 'You';
+        const timeEl = node.querySelector('.iso-msg-time');
+        const timeStr = timeEl ? timeEl.textContent.trim() : '';
+        const bubbleEl = node.querySelector('.iso-msg-bubble');
+        const textContent = bubbleEl ? bubbleEl.textContent.trim() : '';
+        if (textContent) {
+          transcriptText += `[${timeStr}] ${senderName}:\n${textContent}\n\n`;
+        }
+      });
+    }
 
     transcriptText += `==============================================\n`;
     transcriptText += `End of conversation.\n`;
@@ -2723,8 +2801,13 @@
 
         appendMessage("bot", botReply);
 
-        // Check if API response triggered a form
-        if (data && data.form && Array.isArray(config.customForms)) {
+        // Check if API response triggered an end_chat intent or end chat form
+        const isEndChatIntent = data && (data.intent === "end_chat" || data.isEndChat === true || data.form === "survey" || data.form === "end_chat");
+        if (isEndChatIntent) {
+          setTimeout(() => {
+            showEndChatForm("end_chat_intent");
+          }, 600);
+        } else if (data && data.form && Array.isArray(config.customForms)) {
           const formToRender = config.customForms.find(f => f.name === data.form);
           if (formToRender) renderCustomForm(formToRender);
         }
@@ -2752,10 +2835,11 @@
       appendMessage("bot", "I can help escalate this request. Please fill out the form below:");
       if (form) renderCustomForm(form);
       return;
-    } else if (textLower.includes("end") || textLower.includes("bye") || textLower.includes("survey")) {
-      const form = (config.customForms || []).find(f => f.name === "survey");
-      appendMessage("bot", "Thank you for reaching out to ISO AI. Before you go, could you share your feedback?");
-      if (form) renderCustomForm(form);
+    } else if (textLower.includes("end") || textLower.includes("bye") || textLower.includes("goodbye") || textLower.includes("exit") || textLower.includes("survey")) {
+      appendMessage("bot", "Thank you for chatting with us! Have a wonderful day. Goodbye! 👋");
+      setTimeout(() => {
+        showEndChatForm("end_chat_fallback");
+      }, 600);
       return;
     } else if (textLower.includes("academic") || textLower.includes("course") || textLower.includes("student")) {
       reply = "I specialize in academic support! You can ask about course registrations, campus resources, academic deadlines, or tutoring services.";
